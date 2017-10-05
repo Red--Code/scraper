@@ -1,6 +1,6 @@
 node-website-scraper/*
 node*
 node_modules/*
-package*
+package-*
 package.js
 package-lock.js
