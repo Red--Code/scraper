@@ -1,9 +1,10 @@
 const cheerio = require('cheerio');
 const fs = require('fs');
 const prepend = require('prepend');
-var net = require('http');
+var express = require('express');
+var app = express();
 var request = require('request');
-var counter=0;
+var counter = 0;
 var articles =new Array;
 var dl= new Array;
 var pages = new Array;
@@ -37,6 +38,7 @@ function btnamer(fname){
 	if(lbl.search("/serial/")>0){
 		strpos = lbl.search("s[/0-9/][/0-9/]e[/0-9/][/0-9/]");
 		endpos = strpos + 6;
+		qua += ' ';
 		qua += lbl.slice(strpos ,endpos);
 		console.log(qua);
 	}
@@ -76,7 +78,6 @@ function btnamer(fname){
 		if(lbl.search("x265")>0||lbl.search("hvec")>0){
 				qua += ' x265';
 		}
-		}
 	return qua;
 	}	
 	if(lbl.search("1080p")>0){
@@ -104,13 +105,13 @@ function btnamer(fname){
 }
 function suffix_fs(id,naaddr,imaddr){
 	setTimeout(function(){
-	prepend('db/' + id + ' db.js' ,"const movie = {\n id:'"+id+"',\nname:'"+ purge(naaddr) + "',\ncover:'"+ '"' + imaddr + '"' +"',\nthumb:'"+ imaddr+"'\n}\n"+'movie.inline={inline_keyboard: [\n',function(file,err) {
+	prepend('tmp/db/' + id + ' db.js' ,"const movie = {\n id:'"+id+"',\nname:'"+ purge(naaddr) + "',\ncover:'"+ '"' + imaddr + '"' +"',\nthumb:'"+ imaddr+"'\n}\n"+'movie.inline={inline_keyboard: [\n',function(file,err) {
 	});	//prefix
-	},500)
+	},400)
 	setTimeout(function(){
-	fs.appendFile("db/" + id + " db.js" ,'[\n{\ntext: "زیرنویس",\nurl:"http://subf2m.co/subtitles/"\n}\n],[\n{\ntext: "share",\nswitch_inline_query: movie.name\n}\n]\n]\n}\nmodule.exports = movie;\nmodule.exports.prop = "middle";\nmodule.exports.path = "../examples/" + movie.id + " db.js";',function(file,err) {
+	fs.appendFile("tmp/db/" + id + " db.js" ,'[\n{\ntext: "زیرنویس",\nurl:"http://subf2m.co/subtitles/"\n}\n],[\n{\ntext: "share",\nswitch_inline_query: movie.name\n}\n]\n]\n}\nmodule.exports = movie;\nmodule.exports.prop = "middle";\nmodule.exports.path = "../examples/" + movie.id + " db.js";',function(file,err) {
 	});	//suffix
-	},1000)
+	},500)
 }
 function scraper(page){
 console.log('page:',pages[page]);
@@ -145,13 +146,16 @@ function engine (counter,page) {
 	caddr.each(function(i,elem) {
 		dl[counter] = $(this).attr('href');
 		if(dl[counter].toLowerCase().search(".mkv")>0 || dl[counter].toLowerCase().search(".mp4")>0){
-	fs.appendFile('db/' + id + ' db.js','[\n	{\n		text:"'+btnamer(dl[counter])+'",\n		url:"'+'http://opizo.com/81105/?'+dl[counter]+'"\n	}	],\n',function(err) {
+	fs.appendFile('tmp/db/' + id + ' db.js','[\n	{\n		text:"'+btnamer(dl[counter])+'",\n		url:"'+'http://opizo.com/81105/?'+dl[counter]+'"\n	}	],\n',function(err) {
 	}); //main
 	}
 });
 suffix_fs(id,naaddr,imaddr);
 id++;
 });
+	if(page == 599){
+		return 0;
+	}
 	if(counter == 0){
 	page++;
 	scraper(page);
@@ -162,6 +166,6 @@ id++;
 	},main_delay)
 }
 scraper(page);
-finish.listen(3000, function() {
-  console.log('Holding Server ...');
+app.listen(3000, function() {
+  console.log('Telegram app listening on port 3000!');
 });
